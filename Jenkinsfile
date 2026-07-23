@@ -8,31 +8,29 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Using the GitHub credentials ID created above
                 checkout([$class: 'GitSCM', 
                     branches: [[name: '*/main']], 
                     userRemoteConfigs: [[url: 'https://github.com/anupam66kumar/SampleMERNwithMicroservices.git', 
-                    credentialsId: 'github-anupam-pat-credentials']]
+                    credentialsId: 'anupam-github-pat']]
                 ])
             }
         }
         stage('Build and Push Services') {
             steps {
                 script {
-                    // Injecting AWS credentials securely for the ECR login & push session
-                    withCredentials([aws(credentialsId: 'aws-anupam-ecr-credentials', 
+                    withCredentials([aws(credentialsId: 'aws-ecr-credentials', 
                                          accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
                                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         
                         // Authenticate Docker to ECR
                         sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
                         
-                        // Build and Push Hello Service
-                        def helloImg = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/helloservice:${IMAGE_TAG}", "./helloservice")
+                        // Build and Push Hello Service (inside backend folder)
+                        def helloImg = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/helloservice:${IMAGE_TAG}", "./backend/helloService")
                         helloImg.push()
 
-                        // Build and Push Profile Service
-                        def profileImg = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/profileservice:${IMAGE_TAG}", "./profileservice")
+                        // Build and Push Profile Service (inside backend folder)
+                        def profileImg = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/profileservice:${IMAGE_TAG}", "./backend/profileService")
                         profileImg.push()
 
                         // Build and Push Frontend
