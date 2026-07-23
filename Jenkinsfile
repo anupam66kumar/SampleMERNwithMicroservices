@@ -18,7 +18,7 @@ pipeline {
         stage('Build and Push Services') {
             steps {
                 script {
-                    withCredentials([aws(credentialsId: 'aws-ecr-credentials', 
+                    withCredentials([aws(credentialsId: 'aws-anupam-ecr-credentials', 
                                          accessKeyVariable: 'AWS_ACCESS_KEY_ID', 
                                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                         
